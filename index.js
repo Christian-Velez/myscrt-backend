@@ -20,7 +20,7 @@ const postRouter = require('./controllers/post');
 
 
 
-const PORT = 3005;
+const PORT = process.env.PORT || 3005;
 
 
 
