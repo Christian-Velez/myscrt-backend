@@ -6,6 +6,7 @@ const handleErrors = require('../../../proyecto-backend/middlewares/handleErrors
 
 const userRouter = express.Router();
 const User = require('../models/User');
+const userExtractor = require('../middlewares/userExtractor');
 
 
 
@@ -65,6 +66,28 @@ userRouter.get('/:id', async(req, resp, next) => {
    }
 });
 
+
+
+userRouter.delete('/:id', userExtractor, async(req, resp, next) => {
+   try {
+      const { id } = req.params;
+      
+      if(id !== req.userId) {
+         return resp.status(401).json({ Message: 'Insufficient permissions'});
+      }
+
+
+      await User.findByIdAndDelete(req.userId);
+
+
+      resp.status(204).send('Deleted');
+
+   }
+   catch(err){
+      next(err);
+   }
+
+});
 
 
 userRouter.use(handleErrors);

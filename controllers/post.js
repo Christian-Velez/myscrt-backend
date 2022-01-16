@@ -40,7 +40,7 @@ postRouter.post('/', async(req, resp, next) => {
 
 });
 
-
+// IMPLEMENTAR EL JWT
 // Delete post
 postRouter.delete('/:id', userExtractor, async(req, resp, next) => {
    try {
@@ -68,6 +68,8 @@ postRouter.delete('/:id', userExtractor, async(req, resp, next) => {
 });
 
 
+
+// Add comment
 postRouter.put('/comment/:id', async (req, resp, next) => {
    try {
       const { id } = req.params;
@@ -86,6 +88,31 @@ postRouter.put('/comment/:id', async (req, resp, next) => {
    } catch(err) {
       next(err);
    }
+
+});
+
+
+
+// IMPLEMENTAR EL JWT
+// Delete comment
+postRouter.delete('/:postId/comment/:commentId', async(req, resp, next) => {
+   try {
+      const { postId, commentId } = req.params;
+
+      await Post.findByIdAndUpdate(postId, {
+         $pull: {
+            comments: {
+               _id: commentId
+            }
+         }
+      }, { new: true});
+
+      resp.status(204).json({ Message: 'Ok'});
+   }
+   catch(err) {
+      next(err);
+   }
+
 
 });
 
