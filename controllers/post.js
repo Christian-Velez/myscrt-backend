@@ -2,7 +2,7 @@
 
 
 const express = require('express');
-const handleErrors = require('../../../proyecto-backend/middlewares/handleErrors');
+const handleErrors = require('../middlewares/handleErrors');
 const userExtractor = require('../middlewares/userExtractor');
 const Post = require('../models/Post');
 const User = require('../models/User');

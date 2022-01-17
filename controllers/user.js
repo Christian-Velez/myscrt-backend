@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 
 const express = require('express');
-const handleErrors = require('../../../proyecto-backend/middlewares/handleErrors');
+const handleErrors = require('../middlewares/handleErrors');
 
 
 const userRouter = express.Router();
