@@ -24,12 +24,15 @@ const PORT = process.env.PORT || 3005;
 
 
 
+app.use((req, resp, next) => {
+   console.log('Body =>' , req.body);
+
+   next();
+});
 
 app.get('/', (req, resp) => {
    resp.send('<h1> app</h1>');
 });
-
-
 
 app.use('/api/user', userRouter);
 app.use('/api/post', postRouter);

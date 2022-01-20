@@ -16,50 +16,40 @@ postRouter.post('/', async(req, resp, next) => {
    try {
       const data = req.body;
       const { userId, ...rest } = data;
-      
 
-      const user = await User.findById(userId);
+      // Check if user exists
+      const user = await User.findById(userId);      
       if(!user) {
          return resp.send(400).json({ Message: 'User not found'});
       }
 
+      // Save new post in DB
       const newPost = new Post({
+         userFeed: userId,
          ...rest
       });
       const savedPost = await newPost.save();
-
-
-      user.posts = user.posts.concat(savedPost._id);
-      await user.save();
 
       resp.status(200).json({savedPost});
    }
    catch(err) {
       next(err);
    }
-
 });
 
-// IMPLEMENTAR EL JWT
 // Delete post
 postRouter.delete('/:id', userExtractor, async(req, resp, next) => {
    try {
-      const { id } = req.params;
-      const updatedUser = await User.findByIdAndUpdate(req.userId, {
-         $pull: {
-            posts: id
+         const { id: postId } = req.params;
+
+         const post = await Post.findById(postId);
+
+         if(req.userId !== post.userFeed.toString()) {
+            return resp.status(401).json({ Message: 'Insufficient permisions '});
          }
-      }, { new: true})
-         .populate({
-            path: 'posts', 
-            options: { 
-               sort: { 
-                  'createdAt': -1 
-               } 
-            } 
-         });
-         await Post.findByIdAndDelete(id);
-         resp.status(200).json({ updatedUser });
+
+         await Post.findByIdAndDelete(postId);
+         resp.status(204).send('Post deleted');
       }
    catch(err) {
       next(err);
@@ -68,15 +58,13 @@ postRouter.delete('/:id', userExtractor, async(req, resp, next) => {
 });
 
 
-
 // Add comment
 postRouter.put('/comment/:id', async (req, resp, next) => {
    try {
-      const { id } = req.params;
+      const { id: postId } = req.params;
       const { comment } = req.body;
 
-
-      const post = await Post.findById(id);
+      const post = await Post.findById(postId);
       
       post.comments = post.comments.concat({ comment });
       const updatedPost = await post.save();
@@ -85,6 +73,7 @@ postRouter.put('/comment/:id', async (req, resp, next) => {
          Message: 'Comment posted',
          updatedPost
       });
+
    } catch(err) {
       next(err);
    }
@@ -93,13 +82,19 @@ postRouter.put('/comment/:id', async (req, resp, next) => {
 
 
 
-// IMPLEMENTAR EL JWT
 // Delete comment
-postRouter.delete('/:postId/comment/:commentId', async(req, resp, next) => {
+postRouter.delete('/:postId/comment/:commentId',userExtractor , async(req, resp, next) => {
    try {
       const { postId, commentId } = req.params;
 
-      await Post.findByIdAndUpdate(postId, {
+      const post = await Post.findById(postId);
+
+
+      if(req.userId !== post.userFeed.toString()) {
+         return resp.status(401).json({ Message: 'Insufficient permisions '});
+      }
+
+      const updatedPost = await Post.findByIdAndUpdate(postId, {
          $pull: {
             comments: {
                _id: commentId
@@ -107,13 +102,11 @@ postRouter.delete('/:postId/comment/:commentId', async(req, resp, next) => {
          }
       }, { new: true});
 
-      resp.status(204).json({ Message: 'Ok'});
+      resp.status(204).json({ Message: 'Ok', updatedPost });
    }
    catch(err) {
       next(err);
    }
-
-
 });
 
 postRouter.use(handleErrors);

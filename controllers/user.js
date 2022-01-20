@@ -7,6 +7,7 @@ const handleErrors = require('../middlewares/handleErrors');
 const userRouter = express.Router();
 const User = require('../models/User');
 const userExtractor = require('../middlewares/userExtractor');
+const Post = require('../models/Post');
 
 
 
@@ -14,10 +15,11 @@ const userExtractor = require('../middlewares/userExtractor');
 // Crear nuevo usuario
 userRouter.post('/new', async(req, resp, next) => {
    try {
-      const data = req.body;
+      const { username } = req.body;
       const newUser = new User({
-         ...data
+         username
       });
+
       const savedUser = await newUser.save();
 
 
@@ -47,19 +49,15 @@ userRouter.get('/:id', async(req, resp, next) => {
    try {
       const { id } = req.params;
       
-      const user = await User.findById(id)
-         .populate({
-            path: 'posts', 
-            options: { 
-               sort: { 
-                  'createdAt': -1,
-               } 
-            } 
-         });
-        
+      const user = await User.findById(id);
+      const userPosts = await Post.find({
+         userFeed: user._id
+      }).sort({'createdAt': -1 });
 
-
-      resp.status(200).json({ user });
+      resp.status(200).json({
+         user,
+         posts: userPosts
+      });
    }
    catch(err) {
       next(err);
@@ -78,10 +76,7 @@ userRouter.delete('/:id', userExtractor, async(req, resp, next) => {
 
 
       await User.findByIdAndDelete(req.userId);
-
-
       resp.status(204).send('Deleted');
-
    }
    catch(err){
       next(err);

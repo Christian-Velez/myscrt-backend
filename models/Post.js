@@ -2,11 +2,15 @@ const { Schema, model } = require('mongoose');
 
 
 const postSchema = new Schema({
+   userFeed: {
+      type: Schema.Types.ObjectId,
+      ref: 'User'
+   },
+
    mainComment: {
       type: String,
       required: true
    },
-
 
    comments: [{
       comment: String,
@@ -15,9 +19,7 @@ const postSchema = new Schema({
          default: Date.now  
       }
    }]
-   
 }, { timestamps: true });
-
 
 postSchema.set('toJSON', {
    transform: (document, returnedObject) => {
@@ -28,5 +30,4 @@ postSchema.set('toJSON', {
 });
 
 const Post = model('Post', postSchema);
-
 module.exports = Post;
